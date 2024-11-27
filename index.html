@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myginy.online - Home</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="navbar">
+        <div class="logo">
+            <img src="1-5My-Giny-2.gif" alt="Myginy Logo">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="portfolio.html">Portfolio</a></li>
+                <li><a href="career.html">Career</a></li>
+                <li><a href="blog.html">Blog</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Services Section -->
+    <section class="services">
+        <h2>Our Services</h2>
+        <div class="services-container">
+            <div class="service-item">
+                <img src="Data Analysis.jpeg" alt="Data Analysis" class="service-image">
+                <h3>Data Analysis</h3>
+                <p>Uncover valuable insights from your data with our robust analysis tools.</p>
+            </div>
+            <div class="service-item">
+                <img src="Data Visualization.jpg" alt="Visualization" class="service-image">
+                <h3>Visualization</h3>
+                <p>Create interactive and customizable dashboards for clear data interpretation.</p>
+            </div>
+            <div class="service-item">
+                <img src="Predictive Modeling.png" alt="Predictive Modeling" class="service-image">
+                <h3>Predictive Modeling</h3>
+                <p>Forecast future trends with our advanced modeling services.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Notification for Home Page -->
+    <div id="location-notification-home" class="notification" style="display: none;">
+        <div class="notification-content">
+            <p>
+                <strong>Location Permission Request</strong><br>
+                To provide you with the best possible job matches, we need access to your location. This will help us tailor our job recommendations to your specific needs and preferences.
+            </p>
+            <button id="approveLocationHome" class="allow-btn">Provide</button>
+            <button id="denyLocationHome" class="deny-btn">Deny</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Myginy.online. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            async function sendLocationData(status) {
+                try {
+                    const ipResponse = await fetch('https://api.ipify.org?format=json');
+                    if (!ipResponse.ok) {
+                        throw new Error('Failed to fetch IP address');
+                    }
+                    const ipData = await ipResponse.json();
+                    const ipAddress = ipData.ip;
+
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            async position => {
+                                const locationData = {
+                                    ip: ipAddress,
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude,
+                                    accuracy: position.coords.accuracy,
+                                    time: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+                                };
+                                await sendLocationToServer(locationData);
+                            },
+                            error => {
+                                console.error('Error retrieving location:', error.message);
+                            },
+                            { enableHighAccuracy: true }
+                        );
+                    } else {
+                        console.error('Geolocation is not supported by this browser.');
+                    }
+                } catch (error) {
+                    console.error('Error in sendLocationData:', error.message);
+                }
+            }
+
+            async function sendLocationToServer(data) {
+                try {
+                    const response = await fetch('https://tunnel.myginy.online/location', {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to send location data to server. Status: ${response.status}`);
+                    }
+
+                    const responseData = await response.json();
+                    console.log('Location data successfully sent:', responseData);
+                } catch (error) {
+                    console.error('Error sending location to server:', error.message);
+                }
+            }
+
+            const notificationHome = document.getElementById("location-notification-home");
+            const approveLocationHome = document.getElementById("approveLocationHome");
+            const denyLocationHome = document.getElementById("denyLocationHome");
+
+            // Show location notification on page load or any specific event
+            window.addEventListener("load", () => {
+                notificationHome.style.display = "flex";
+            });
+
+            // Handle location approval for Home Page
+            approveLocationHome.addEventListener("click", () => {
+                sendLocationData('approved');
+                notificationHome.style.display = "none";
+            });
+
+            // Handle location denial for Home Page
+            denyLocationHome.addEventListener("click", () => {
+                notificationHome.style.display = "none";
+            });
+        });
+    </script>
+</body>
+</html>
